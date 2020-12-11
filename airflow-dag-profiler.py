@@ -50,7 +50,7 @@ def _system(cmd, logger=None):
 def airflow_dag_profiler(dag_id, debug):
     if debug:
         logging.basicConfig(level=logging.INFO)
-    tasktree = _system("airflow list_tasks -t {dag_id}").output
+    tasktree = _system(f"airflow list_tasks -t {dag_id}").output
     print(f"tasktree: {tasktree}")
 
 
