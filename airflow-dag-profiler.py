@@ -62,6 +62,7 @@ def airflow_dag_profiler(dag_id, debug, date):
     # <Task(BigQueryOperator): do_filter>
     bq_tasks = [t for t in re.findall(
         r"<Task\(BigQueryOperator\): ([a-zA-Z0-9_]+)>", tasktree)]
+    bq_tasks = list(set(bq_tasks))
     quota = []
     for bq_task in tqdm(bq_tasks):
         sql = _system(
