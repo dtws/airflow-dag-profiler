@@ -61,7 +61,7 @@ def airflow_dag_profiler(dag_id, debug, date):
     bq_tasks = [t for t in re.findall(r"<Task\(BigQueryOperator\): ([a-zA-Z0-9_]+)>",tasktree)]
     quota = []
     for bq_task in tqdm(bq_tasks):
-        sql = _system(f"airflow render {dag_id} {bq_task} {date.strptime('%Y-%m-%d')}")
+        sql = _system(f"airflow render {dag_id} {bq_task} {date.strftime('%Y-%m-%d')}")
         lines = sql.split("\n")
         start = next(i for i,line in enumerate(lines) if re.match("^ *# property: sql *$",line) is not None)
         end = next(i for i,line in enumerate(lines) if re.match("^ *# property: destination_dataset_table *$",line) is not None)
