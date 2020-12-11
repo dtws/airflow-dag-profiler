@@ -1,0 +1,5 @@
+click==7.1.2
+Jinja2==2.11.2
+tqdm==4.54.1
+google-cloud-bigquery==2.6.1
+google-cloud-bigquery-storage==2.1.0
