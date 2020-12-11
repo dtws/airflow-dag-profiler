@@ -24,6 +24,7 @@ import logging
 import os
 import subprocess
 from collections import namedtuple
+import re
 
 
 def _add_logger(f):
@@ -51,7 +52,12 @@ def airflow_dag_profiler(dag_id, debug):
     if debug:
         logging.basicConfig(level=logging.INFO)
     tasktree = _system(f"airflow list_tasks -t {dag_id} 2>/dev/null").output
-    print(f"tasktree: {tasktree}")
+    #print(f"tasktree: {tasktree}")
+    #<Task(BigQueryOperator): do_filter>
+    tasks = [t[0] for t in re.findall(r"<Task\(BigQueryOperator\): ([a-zA-Z0-9_]+)>",tasktree)]
+    print(f"tasks: {tasks}")
+
+    #
 
 
 if __name__ == "__main__":
