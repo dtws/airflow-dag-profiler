@@ -28,6 +28,7 @@ import re
 from tqdm import tqdm
 from google.cloud import bigquery
 import pandas as pd
+from jinja2 import Template
 
 
 def _add_logger(f):
@@ -54,10 +55,13 @@ def _system(cmd, logger=None):
 @click.option("--debug/--no-debug", default=False)
 @click.argument("dag_id")
 @click.argument("date", type=click.DateTime())
-def airflow_dag_profiler(dag_id, debug, date):
+@click.option("--airflow-render-command", envvar="AIRFLOW_DAG_PROFILER__AIRFLOW_RENDER_COMMAND", default="airflow render {{dag_id}} {{bq_task}} {{ds}}")
+@click.option("--airflow-list-tasks-command", envvar="AIRFLOW_DAG_PROFILER__AIRFLOW_LIST_TASKS_COMMAND", default="airflow list_tasks -t {{dag_id}} 2>/dev/null")
+def airflow_dag_profiler(dag_id, debug, date, airflow_list_tasks_command, airflow_render_command):
     if debug:
         logging.basicConfig(level=logging.INFO)
-    tasktree = _system(f"airflow list_tasks -t {dag_id} 2>/dev/null").output
+    tasktree = _system(Template(airflow_list_tasks_command).render(
+        {"dag_id": dag_id, "date": date})).output
     client = bigquery.Client()
     # <Task(BigQueryOperator): do_filter>
     bq_tasks = [t for t in re.findall(
@@ -66,7 +70,7 @@ def airflow_dag_profiler(dag_id, debug, date):
     quota = []
     for bq_task in tqdm(bq_tasks):
         sql = _system(
-            f"airflow render {dag_id} {bq_task} {date.strftime('%Y-%m-%d')}").output
+            Template(airflow_render_command).render({"dag_id": dag_id, "bq_task": bq_task, "date": date,"ds":date.strftime("%Y-%m-%d")})).output
         lines = sql.split("\n")
         start = next(i for i, line in enumerate(lines) if re.match(
             "^ *# property: sql *$", line) is not None)
